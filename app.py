@@ -1,29 +1,8 @@
-import streamlit as st
-import os
-from modules.video_processor import process_video
+import runpy
+import sys
+from pathlib import Path
 
-st.title("Gym Bro Form Check")
 
-uploaded_file = st.file_uploader(
-    "Upload Exercise Video",
-    type=["mp4"]
-)
-
-if uploaded_file is not None:
-
-    upload_path = os.path.join("uploads", uploaded_file.name)
-
-    with open(upload_path, "wb") as f:
-        f.write(uploaded_file.read())
-
-    st.success("Video uploaded successfully!")
-
-    st.video(upload_path)
-
-    if st.button("Process Video"):
-
-        output_path = process_video(upload_path)
-
-        st.success("Processing complete!")
-
-        st.video(output_path)
+PROJECT_ROOT = Path(__file__).parent
+sys.path.insert(0, str(PROJECT_ROOT / "app"))
+runpy.run_path(str(PROJECT_ROOT / "app" / "main.py"))

@@ -1,0 +1,29 @@
+# Python virtual environments
+.venv/
+venv/
+env/
+
+# Python cache files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Streamlit and local environment files
+.streamlit/secrets.toml
+.env
+.env.*
+
+# Uploaded and generated media
+data/uploads/*
+data/outputs/*
+uploads/
+outputs/
+
+# Downloaded model assets
+data/models/*.task
+
+# Keep placeholder folders in Git
+!data/uploads/.gitkeep
+!data/outputs/.gitkeep
+!data/reference_videos/.gitkeep
+!data/models/.gitkeep
