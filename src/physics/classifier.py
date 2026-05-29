@@ -109,5 +109,42 @@ def generate_set_summary(timeline, lift_type="squat"):
             
         return report
 
+    elif lift_type == "bench":
+        # Find the single frame where the elbow angle was the smallest (bottom of the bench press)
+        deepest_frame = min(timeline, key=lambda x: x["angles"]["elbow_flexion"])
+        elbow_angle = deepest_frame["angles"]["elbow_flexion"]
+        hit_depth = elbow_angle <= 90.0
+        
+        report = {
+            "lift_evaluated": "Bench Press",
+            "min_elbow_angle": elbow_angle,
+            "hit_depth": hit_depth,
+            "overall_feedback": "Excellent range of motion, you fully touched your chest!" if hit_depth else "Shallow press. Focus on bringing the bar all the way down to touch your chest."
+        }
+        return report
+
+    elif lift_type == "deadlift":
+        # Find the frame with maximum hip extension (lockout at the top)
+        lockout_frame = max(timeline, key=lambda x: x["angles"]["hip_extension"])
+        max_hip_extension = lockout_frame["angles"]["hip_extension"]
+        has_lockout = max_hip_extension >= 170.0
+        
+        # Check if they rounded their back/stiff-legged off the floor (knees straight, high torso lean)
+        bad_pull_frames = [f for f in timeline if f["angles"]["knee_flexion"] > 160.0 and f["angles"]["torso_lean"] > 60.0]
+        back_rounding_warning = len(bad_pull_frames) > 0
+        
+        report = {
+            "lift_evaluated": "Deadlift",
+            "max_hip_extension": max_hip_extension,
+            "has_lockout": has_lockout,
+            "back_rounding_warning": back_rounding_warning,
+            "overall_feedback": "Solid lockout at the top!" if has_lockout else "Did not fully lock out at the top. Drive your hips through to finish."
+        }
+        
+        if back_rounding_warning:
+            report["overall_feedback"] += " Also, make sure to bend your knees and use your legs off the floor rather than lifting with your back."
+            
+        return report
+
     # Fallback for other lifts until we add their summary logic
     return {"info": f"Summary logic not yet built for {lift_type}."}
