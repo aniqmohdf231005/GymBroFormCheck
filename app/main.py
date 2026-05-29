@@ -11,8 +11,8 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from src.utils.renderer import process_video
 from styles import apply_styles
-# Ensure your file is named 'classifier.py' if you use this line!
 from src.physics.classifier import process_video_csv, generate_set_summary
+from src.analysis.dtw_engine import compare_to_reference
 
 def main():
     apply_styles()
@@ -83,6 +83,38 @@ def main():
                     
                 except Exception as e:
                     st.error(f"Physics Engine Error: {e}")
+
+            st.subheader("⏱️ Tempo Analysis (DTW)")
+            with st.spinner("Comparing tempo to reference..."):
+                try:
+                    dtw_result = compare_to_reference(result.smoothed_csv, lift_type=lift_selection)
+
+                    if "error" in dtw_result:
+                        st.warning(f"Tempo analysis unavailable: {dtw_result['error']}")
+                    else:
+                        label = dtw_result["tempo_label"]
+                        score = dtw_result["dtw_score"]
+
+                        if score < 20:
+                            st.success(f"**{label}** (score: {score})")
+                        elif score < 45:
+                            st.info(f"**{label}** (score: {score})")
+                        elif score < 75:
+                            st.warning(f"**{label}** (score: {score})")
+                        else:
+                            st.error(f"**{label}** (score: {score})")
+
+                        if dtw_result.get("speed_warning"):
+                            st.warning(f"Speed: {dtw_result['speed_warning']}")
+
+                        st.caption(
+                            f"Tracking {dtw_result['angle_tracked']} — "
+                            f"{dtw_result['user_frames']} user frames vs "
+                            f"{dtw_result['reference_frames']} reference frames "
+                            f"(speed ratio: {dtw_result.get('speed_ratio', 'N/A')}x)."
+                        )
+                except Exception as e:
+                    st.warning(f"Tempo analysis skipped: {e}")
 
             st.subheader("Video Processing Result")
             preview = pd.read_csv(result.raw_csv).head()
