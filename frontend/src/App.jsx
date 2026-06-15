@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Upload, Activity, ShieldCheck, Zap, Video, ChevronRight, ActivitySquare, CheckCircle, AlertTriangle, Download } from 'lucide-react';
+import { Upload, Activity, ShieldCheck, Zap, Video, ChevronRight, ActivitySquare, CheckCircle, AlertTriangle, Download, ChevronDown, ChevronUp } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import './index.css';
 
@@ -11,6 +11,7 @@ function App() {
   const [results, setResults] = useState(null);
   const [error, setError] = useState(null);
   const [loadingText, setLoadingText] = useState("INITIALIZING ENGINE...");
+  const [showData, setShowData] = useState(false);
 
   React.useEffect(() => {
     if (!isProcessing) return;
@@ -282,6 +283,59 @@ function App() {
                   </div>
                 </motion.div>
               </div>
+
+              {/* Raw Data Expander */}
+              <motion.div variants={itemFadeUp} style={{ marginTop: '2rem' }}>
+                <button 
+                  onClick={() => setShowData(!showData)}
+                  style={{ width: '100%', padding: '1rem', background: 'var(--bg-panel)', border: '1px solid var(--border-subtle)', borderRadius: 12, color: 'var(--text-pure)', fontSize: '1rem', fontWeight: 600, display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}
+                >
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}><ActivitySquare size={18}/> View Raw Kinematic Landmark Datasets</span>
+                  {showData ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                </button>
+                
+                <AnimatePresence>
+                  {showData && (
+                    <motion.div 
+                      initial={{ height: 0, opacity: 0 }} 
+                      animate={{ height: 'auto', opacity: 1 }} 
+                      exit={{ height: 0, opacity: 0 }}
+                      style={{ overflow: 'hidden' }}
+                    >
+                      <div style={{ padding: '1rem', background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.05)', borderTop: 'none', borderBottomLeftRadius: 12, borderBottomRightRadius: 12, overflowX: 'auto' }}>
+                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+                          <thead>
+                            <tr style={{ color: 'var(--text-dim)', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+                              {results.raw_preview && results.raw_preview.length > 0 && Object.keys(results.raw_preview[0]).slice(0, 15).map(key => (
+                                <th key={key} style={{ padding: '8px', textAlign: 'left' }}>{key}</th>
+                              ))}
+                              {results.raw_preview && results.raw_preview.length > 0 && Object.keys(results.raw_preview[0]).length > 15 && (
+                                <th style={{ padding: '8px', textAlign: 'left' }}>...</th>
+                              )}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {results.raw_preview && results.raw_preview.map((row, i) => (
+                              <tr key={i} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                                {Object.values(row).slice(0, 15).map((val, j) => (
+                                  <td key={j} style={{ padding: '8px', color: 'var(--text-pure)' }}>
+                                    {typeof val === 'number' ? val.toFixed(4) : val}
+                                  </td>
+                                ))}
+                                {Object.values(row).length > 15 && <td style={{ padding: '8px', color: 'var(--text-dim)' }}>...</td>}
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                        <div style={{ textAlign: 'center', marginTop: '1rem', color: 'var(--text-dim)', fontSize: '0.85rem' }}>
+                          Showing preview of first 5 frames. Download full CSV above.
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.div>
+
             </motion.div>
           )}
 

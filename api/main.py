@@ -70,6 +70,9 @@ async def analyze_video(file: UploadFile = File(...)):
         print("Generating AI feedback...")
         coaching_report = generate_feedback(final_summary, dtw_result, lift_selection)
 
+        import pandas as pd
+        raw_preview = pd.read_csv(result.raw_csv).head(5).fillna("").to_dict(orient="records")
+
         # Return comprehensive JSON payload to the frontend
         return JSONResponse(content={
             "status": "success",
@@ -78,6 +81,7 @@ async def analyze_video(file: UploadFile = File(...)):
             "tempo": dtw_result,
             "coach_feedback": coaching_report,
             "telemetry": timeline_report,
+            "raw_preview": raw_preview,
             "files": {
                 "output_video": result.output_video,
                 "raw_csv": result.raw_csv,
