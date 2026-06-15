@@ -206,14 +206,27 @@ def detect_lift_type(csv_path):
 
     hip_rom = hips_y.max() - hips_y.min() if not hips_y.empty else 0.0
 
-    # 3. Maximum Torso Lean
+    # 3. Maximum Torso Lean and Wrist Position
     max_torso_lean = 0.0
+    wrist_below_shoulder_count = 0
+    total_valid_frames = 0
+
     for _, row in df_subset.iterrows():
         try:
             left_shoulder = [row['x_11'], row['y_11'], row['z_11']]
             left_hip = [row['x_23'], row['y_23'], row['z_23']]
             right_shoulder = [row['x_12'], row['y_12'], row['z_12']]
             right_hip = [row['x_24'], row['y_24'], row['z_24']]
+            left_wrist = [row['x_15'], row['y_15'], row['z_15']]
+            right_wrist = [row['x_16'], row['y_16'], row['z_16']]
+            
+            # In MediaPipe, Y increases downwards.
+            shoulder_y = (left_shoulder[1] + right_shoulder[1]) / 2
+            wrist_y = (left_wrist[1] + right_wrist[1]) / 2
+            
+            if wrist_y > shoulder_y:
+                wrist_below_shoulder_count += 1
+            total_valid_frames += 1
             
             shoulder = [(left_shoulder[i] + right_shoulder[i]) / 2 for i in range(3)]
             hip = [(left_hip[i] + right_hip[i]) / 2 for i in range(3)]
@@ -225,13 +238,15 @@ def detect_lift_type(csv_path):
             pass
 
     # --- HEURISTIC CLASSIFIER ---
+    wrist_below_shoulder_ratio = wrist_below_shoulder_count / total_valid_frames if total_valid_frames > 0 else 0
+
     # A. Pull-up: wrists are fixed overhead on the bar, so wrist ROM is tiny, while hips move.
     if wrist_rom < 0.12 and hip_rom > 0.08:
         return "pullup"
 
-    # B. Deadlift: chest leans forward heavily, and wrists travel a large distance to pull the bar.
-    if max_torso_lean > 48.0 and wrist_rom > 0.15:
+    # B. Deadlift: wrists hang below the shoulders for the majority of the lift and travel a large vertical distance.
+    if wrist_below_shoulder_ratio > 0.7 and wrist_rom > 0.15:
         return "deadlift"
 
-    # C. Squat: default fallback. Torso is more vertical, bar moves with shoulders.
+    # C. Squat: default fallback. Torso is more vertical, bar moves with shoulders, and wrists are held high.
     return "squat"
