@@ -1,0 +1,164 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap');
+
+:root {
+  /* Ultra-Deep Space Colors */
+  --bg-deep: #05050A;
+  --bg-surface: rgba(15, 17, 26, 0.4);
+  --bg-panel: rgba(20, 22, 36, 0.6);
+  
+  /* Cybernetic Accents */
+  --neon-cyan: #00E5FF;
+  --neon-purple: #9D4EDD;
+  --neon-pink: #FF007F;
+  --cyber-green: #39FF14;
+  
+  /* Gradients */
+  --grad-primary: linear-gradient(135deg, var(--neon-cyan) 0%, var(--neon-purple) 100%);
+  --grad-text: linear-gradient(to right, #FFFFFF 0%, #A5B4FC 100%);
+  
+  /* Text */
+  --text-pure: #FFFFFF;
+  --text-dim: #94A3B8;
+  --text-dark: #475569;
+  
+  /* FX */
+  --border-glass: 1px solid rgba(255, 255, 255, 0.05);
+  --border-glow: 1px solid rgba(0, 229, 255, 0.3);
+  --glow-cyan: 0 0 20px rgba(0, 229, 255, 0.2);
+  --glow-purple: 0 0 30px rgba(157, 78, 221, 0.3);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Outfit', sans-serif;
+  background-color: var(--bg-deep);
+  color: var(--text-pure);
+  overflow-x: hidden;
+  background-image: 
+    radial-gradient(circle at 15% 50%, rgba(157, 78, 221, 0.08), transparent 40%),
+    radial-gradient(circle at 85% 30%, rgba(0, 229, 255, 0.08), transparent 40%),
+    linear-gradient(rgba(255,255,255,0.01) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.01) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 50px 50px, 50px 50px;
+  background-position: 0 0, 0 0, -1px -1px, -1px -1px;
+}
+
+/* Glass & Neumorphism */
+.glass-card {
+  background: var(--bg-panel);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: var(--border-glass);
+  border-radius: 24px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  position: relative;
+  overflow: hidden;
+}
+
+.glass-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+}
+
+/* Typography */
+h1 {
+  font-size: 4.5rem;
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  background: var(--grad-text);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.mono-text {
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: -0.05em;
+}
+
+/* Premium Buttons */
+.btn-cyber {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 2.5rem;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--bg-deep);
+  background: var(--text-pure);
+  border: none;
+  border-radius: 100px;
+  cursor: pointer;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.btn-cyber:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 10px 30px rgba(255, 255, 255, 0.2);
+}
+
+.btn-outline {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.8rem 2rem;
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--text-pure);
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 100px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-outline:hover {
+  background: rgba(255,255,255,0.05);
+  border-color: rgba(255,255,255,0.4);
+}
+
+/* Scanner FX */
+.scanner-line {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--neon-cyan);
+  box-shadow: 0 0 15px 3px var(--neon-cyan);
+  opacity: 0.7;
+  z-index: 10;
+  animation: scan 2s cubic-bezier(0.4, 0, 0.2, 1) infinite alternate;
+}
+
+@keyframes scan {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(100%); }
+}
+
+/* Custom File Upload */
+.upload-zone {
+  border: 2px dashed rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  padding: 4rem 2rem;
+  text-align: center;
+  transition: all 0.3s ease;
+  background: rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+}
+
+.upload-zone:hover, .upload-zone.drag-active {
+  border-color: var(--neon-cyan);
+  background: rgba(0, 229, 255, 0.02);
+  box-shadow: inset 0 0 30px rgba(0, 229, 255, 0.05);
+}
