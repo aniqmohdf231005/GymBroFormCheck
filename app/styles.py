@@ -380,6 +380,67 @@ def apply_styles():
                 padding-right: 1rem;
             }
         }
+
+        /* Modern Custom Loading Animations */
+        .loading-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 38px 24px;
+            background: linear-gradient(135deg, rgba(20, 27, 40, 0.96), rgba(12, 17, 26, 0.96));
+            border: 1px solid var(--line);
+            border-left: 4px solid var(--cyan);
+            border-radius: var(--radius);
+            margin: 22px 0;
+            text-align: center;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .loading-pulse {
+            width: 54px;
+            height: 54px;
+            border-radius: 50%;
+            background-color: var(--cyan);
+            box-shadow: 0 0 15px rgba(24, 230, 196, 0.6);
+            animation: pulse-ring 1.6s cubic-bezier(0.455, 0.03, 0.515, 0.955) infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes pulse-ring {
+            0% {
+                transform: scale(0.7);
+                opacity: 0.9;
+                box-shadow: 0 0 15px rgba(24, 230, 196, 0.6);
+            }
+            50% {
+                transform: scale(1.15);
+                opacity: 0.45;
+                box-shadow: 0 0 35px rgba(79, 140, 255, 0.85);
+            }
+            100% {
+                transform: scale(0.7);
+                opacity: 0.9;
+                box-shadow: 0 0 15px rgba(24, 230, 196, 0.6);
+            }
+        }
+
+        .loading-text {
+            color: var(--text);
+            font-size: 1.15rem;
+            font-weight: 850;
+            letter-spacing: 0.4px;
+            margin: 0;
+        }
+
+        .loading-subtext {
+            color: var(--muted);
+            font-size: 0.82rem;
+            margin: 6px 0 0;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
         </style>
         """,
         unsafe_allow_html=True,

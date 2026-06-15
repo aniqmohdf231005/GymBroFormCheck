@@ -155,3 +155,83 @@ def generate_set_summary(timeline, lift_type="squat"):
 
     # Fallback for other lifts until we add their summary logic
     return {"info": f"Summary logic not yet built for {lift_type}."}
+
+
+def detect_lift_type(csv_path):
+    """
+    Automatically detects the exercise type (squat, deadlift, or pullup)
+    from the spatial-temporal coordinates extracted by MediaPipe over the first 90 frames.
+    """
+    import numpy as np
+    from src.physics.analyzer import _calculate_vertical_angle
+
+    df = pd.read_csv(csv_path)
+    if df.empty:
+        return "squat"  # Default fallback
+
+    # Interpolate missing values for robust detection
+    df_filled = df.interpolate(limit_direction="both")
+
+    # Look at the first 90 frames (approx. 3 seconds of video) to classify movement profile
+    num_frames = min(len(df_filled), 90)
+    df_subset = df_filled.head(num_frames)
+
+    # 1. Wrist vertical movement (Y-axis)
+    # Wrists are landmarks 15 (left) and 16 (right)
+    # In MediaPipe, Y increases downwards (0 = top, 1 = bottom)
+    left_wrist_y = df_subset.get('y_15', pd.Series(dtype=float))
+    right_wrist_y = df_subset.get('y_16', pd.Series(dtype=float))
+    
+    if not left_wrist_y.empty and not right_wrist_y.empty:
+        wrists_y = (left_wrist_y + right_wrist_y) / 2
+    elif not left_wrist_y.empty:
+        wrists_y = left_wrist_y
+    else:
+        wrists_y = right_wrist_y
+
+    # Wrist vertical range of motion
+    wrist_rom = wrists_y.max() - wrists_y.min() if not wrists_y.empty else 0.0
+
+    # 2. Hip vertical movement (Y-axis)
+    # Hips are landmarks 23 (left) and 24 (right)
+    left_hip_y = df_subset.get('y_23', pd.Series(dtype=float))
+    right_hip_y = df_subset.get('y_24', pd.Series(dtype=float))
+    
+    if not left_hip_y.empty and not right_hip_y.empty:
+        hips_y = (left_hip_y + right_hip_y) / 2
+    elif not left_hip_y.empty:
+        hips_y = left_hip_y
+    else:
+        hips_y = right_hip_y
+
+    hip_rom = hips_y.max() - hips_y.min() if not hips_y.empty else 0.0
+
+    # 3. Maximum Torso Lean
+    max_torso_lean = 0.0
+    for _, row in df_subset.iterrows():
+        try:
+            left_shoulder = [row['x_11'], row['y_11'], row['z_11']]
+            left_hip = [row['x_23'], row['y_23'], row['z_23']]
+            right_shoulder = [row['x_12'], row['y_12'], row['z_12']]
+            right_hip = [row['x_24'], row['y_24'], row['z_24']]
+            
+            shoulder = [(left_shoulder[i] + right_shoulder[i]) / 2 for i in range(3)]
+            hip = [(left_hip[i] + right_hip[i]) / 2 for i in range(3)]
+            
+            lean = _calculate_vertical_angle(shoulder, hip)
+            if lean > max_torso_lean:
+                max_torso_lean = lean
+        except Exception:
+            pass
+
+    # --- HEURISTIC CLASSIFIER ---
+    # A. Pull-up: wrists are fixed overhead on the bar, so wrist ROM is tiny, while hips move.
+    if wrist_rom < 0.12 and hip_rom > 0.08:
+        return "pullup"
+
+    # B. Deadlift: chest leans forward heavily, and wrists travel a large distance to pull the bar.
+    if max_torso_lean > 48.0 and wrist_rom > 0.15:
+        return "deadlift"
+
+    # C. Squat: default fallback. Torso is more vertical, bar moves with shoulders.
+    return "squat"

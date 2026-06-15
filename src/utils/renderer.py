@@ -58,6 +58,7 @@ class VideoProcessingResult:
     frame_count: int
     detected_frames: int
     detection_rate: float
+    detected_lift_type: str = "squat"
 
 
 def _safe_stem(path):
@@ -388,6 +389,12 @@ def process_video(input_path, progress_callback=None, lift_type=None):
         raise
 
     smooth_coordinates(raw_csv, smoothed_csv, progress_callback=progress_callback)
+    
+    # Auto-detect exercise type if none was specified
+    if lift_type is None or lift_type == "auto":
+        from src.physics.classifier import detect_lift_type
+        lift_type = detect_lift_type(smoothed_csv)
+        
     render_wireframe_video(input_path, smoothed_csv, output_path, progress_callback, lift_type=lift_type)
 
     return VideoProcessingResult(
@@ -397,4 +404,5 @@ def process_video(input_path, progress_callback=None, lift_type=None):
         frame_count=pose_result["frame_count"],
         detected_frames=pose_result["detected_frames"],
         detection_rate=pose_result["detection_rate"],
+        detected_lift_type=lift_type
     )
