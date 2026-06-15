@@ -5,7 +5,7 @@ The template is saved as a .npy file in src/analysis/templates/.
 Usage:
     python tools/make_reference.py path/to/video.mp4 squat
     python tools/make_reference.py path/to/video.mp4 deadlift
-    python tools/make_reference.py path/to/video.mp4 bench
+    python tools/make_reference.py path/to/video.mp4 pullup
 """
 
 import sys
@@ -25,7 +25,7 @@ TEMPLATES_DIR = PROJECT_ROOT / "src" / "analysis" / "templates"
 LIFT_PRIMARY_ANGLE = {
     "squat": "knee_flexion",
     "deadlift": "hip_extension",
-    "bench": "elbow_flexion",
+    "pullup": "elbow_flexion",
 }
 
 
@@ -69,7 +69,7 @@ def make_reference(video_path, lift_type):
 if __name__ == "__main__":
     if len(sys.argv) != 3:
         print("Usage: python tools/make_reference.py <video.mp4> <lift_type>")
-        print("  lift_type: squat | deadlift | bench")
+        print("  lift_type: squat | deadlift | pullup")
         sys.exit(1)
 
     make_reference(sys.argv[1], sys.argv[2])

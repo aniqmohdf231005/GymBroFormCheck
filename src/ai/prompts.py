@@ -16,8 +16,8 @@ def get_user_prompt(metrics: dict, dtw_result: dict, lift_type: str) -> str:
     
     # Clean up and combine metrics
     lift_name = lift_type.capitalize()
-    if lift_type == "bench":
-        lift_name = "Bench Press"
+    if lift_type == "pullup":
+        lift_name = "Pull-Up"
         
     user_prompt = f"""Here are the lifter's metrics and tempo analysis for their {lift_name} set:
 

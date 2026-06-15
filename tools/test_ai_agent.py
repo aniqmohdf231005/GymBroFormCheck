@@ -31,12 +31,13 @@ def run_test():
             }
         },
         {
-            "lift_type": "bench",
+            "lift_type": "pullup",
             "metrics": {
-                "lift_evaluated": "Bench Press",
+                "lift_evaluated": "Pull-Up",
                 "min_elbow_angle": 96.5,
-                "hit_depth": False,
-                "overall_feedback": "Shallow press. Focus on bringing the bar all the way down to touch your chest."
+                "torso_lean_at_top": 22.4,
+                "top_reached": False,
+                "overall_feedback": "Incomplete pull-up. Pull higher and aim to get your chin closer to the bar."
             },
             "dtw_result": {
                 "dtw_score": 38.12,

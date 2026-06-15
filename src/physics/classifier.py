@@ -34,10 +34,13 @@ def classify_frame(angle_metrics, lift_type="squat"):
             report["is_optimal"] = False
             report["primary_cue"] = "Chest up! You are leaning too far forward."
             
-    elif lift_type == "bench":
-        if angle_metrics["elbow_flexion"] > 90.0:
+    elif lift_type == "pullup":
+        if angle_metrics["elbow_flexion"] > 95.0:
             report["is_optimal"] = False
-            report["primary_cue"] = "Bring the bar down further to your chest."
+            report["primary_cue"] = "Pull higher and bend your elbows more at the top."
+        elif angle_metrics["torso_lean"] > 35.0:
+            report["is_optimal"] = False
+            report["primary_cue"] = "Keep your torso controlled and avoid swinging."
             
     elif lift_type == "deadlift":
         if angle_metrics["hip_extension"] < 170.0:
@@ -109,18 +112,22 @@ def generate_set_summary(timeline, lift_type="squat"):
             
         return report
 
-    elif lift_type == "bench":
-        # Find the single frame where the elbow angle was the smallest (bottom of the bench press)
-        deepest_frame = min(timeline, key=lambda x: x["angles"]["elbow_flexion"])
-        elbow_angle = deepest_frame["angles"]["elbow_flexion"]
-        hit_depth = elbow_angle <= 90.0
+    elif lift_type == "pullup":
+        # Find the top position where the elbow is most flexed.
+        top_frame = min(timeline, key=lambda x: x["angles"]["elbow_flexion"])
+        elbow_angle = top_frame["angles"]["elbow_flexion"]
+        torso_lean = top_frame["angles"]["torso_lean"]
+        top_reached = elbow_angle <= 95.0
         
         report = {
-            "lift_evaluated": "Bench Press",
+            "lift_evaluated": "Pull-Up",
             "min_elbow_angle": elbow_angle,
-            "hit_depth": hit_depth,
-            "overall_feedback": "Excellent range of motion, you fully touched your chest!" if hit_depth else "Shallow press. Focus on bringing the bar all the way down to touch your chest."
+            "torso_lean_at_top": torso_lean,
+            "top_reached": top_reached,
+            "overall_feedback": "Strong top position with good elbow flexion." if top_reached else "Incomplete pull-up. Pull higher and aim to get your chin closer to the bar."
         }
+        if torso_lean > 35.0:
+            report["overall_feedback"] += " Also, control the swing and keep your torso tighter."
         return report
 
     elif lift_type == "deadlift":

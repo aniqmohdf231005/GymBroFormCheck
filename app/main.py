@@ -21,9 +21,43 @@ def render_html(html_str):
     st.markdown(clean_html, unsafe_allow_html=True)
 
 def main():
+    st.set_page_config(
+        page_title="Gym Bro Form Check",
+        layout="wide",
+        initial_sidebar_state="collapsed",
+    )
     apply_styles()
 
-    st.title("Gym Bro Form Check")
+    render_html(
+        """
+        <div class="app-hero">
+            <div class="hero-copy">
+                <div class="eyebrow">AI-assisted lifting review</div>
+                <h1>Gym Bro Form Check</h1>
+                <p>Upload a lift, choose the movement, and review a synchronized pose video with frame-level coaching cues and performance metrics.</p>
+            </div>
+            <div class="hero-panel">
+                <div class="hero-stat">
+                    <div class="stat-value">3 lifts</div>
+                    <div class="stat-label">Squat, deadlift, pull-up</div>
+                </div>
+                <div class="hero-stat">
+                    <div class="stat-value">Pose video</div>
+                    <div class="stat-label">Landmarks plus live cues</div>
+                </div>
+                <div class="hero-stat">
+                    <div class="stat-value">AI coach</div>
+                    <div class="stat-label">Kinematic feedback</div>
+                </div>
+            </div>
+        </div>
+        <div class="workflow">
+            <div class="workflow-step"><strong>Upload</strong><span>Add a clear MP4 of your lift.</span></div>
+            <div class="workflow-step"><strong>Select</strong><span>Match the analysis to the movement.</span></div>
+            <div class="workflow-step"><strong>Review</strong><span>Watch cues and read the coach report.</span></div>
+        </div>
+        """
+    )
 
     uploaded_file = st.file_uploader(
         "Upload Exercise Video",
@@ -41,11 +75,18 @@ def main():
 
         st.success("Video uploaded successfully!")
 
+        render_html('<div class="section-label">Original video</div>')
         st.video(upload_path)
 
-        lift_selection = st.selectbox("Select Lift Type", ["squat", "bench", "deadlift"])
+        control_col, action_col = st.columns([2, 1])
+        with control_col:
+            lift_selection = st.selectbox("Select Lift Type", ["squat", "deadlift", "pullup"])
+        with action_col:
+            st.write("")
+            st.write("")
+            process_clicked = st.button("Start Form Check", use_container_width=True)
 
-        if st.button("Process Video"):
+        if process_clicked:
 
             progress_bar = st.progress(0)
             status_text = st.empty()
@@ -55,7 +96,7 @@ def main():
                 status_text.write(message)
 
             try:
-                result = process_video(upload_path, update_progress)
+                result = process_video(upload_path, update_progress, lift_type=lift_selection)
             except (RuntimeError, ValueError) as error:
                 progress_bar.empty()
                 status_text.empty()
@@ -71,10 +112,25 @@ def main():
 
             st.success("Processing complete!")
 
-            st.video(result.output_video)
-            
+            render_html('<div class="section-label">Synchronized review</div>')
+            st.subheader("Processed Pose Video")
+            try:
+                with open(result.output_video, "rb") as video_file:
+                    processed_video = video_file.read()
+                st.video(processed_video, format="video/mp4")
+                st.download_button(
+                    "Download Processed Pose Video",
+                    processed_video,
+                    file_name=os.path.basename(result.output_video),
+                    mime="video/mp4",
+                    use_container_width=True
+                )
+            except OSError as error:
+                st.warning(f"Processed video could not be displayed: {error}")
+
             # FIXED THE ALIGNMENT HERE
-            st.subheader("🧠 Gym Bro AI Form Analysis")
+            render_html('<div class="section-label">Coach report</div>')
+            st.subheader("Gym Bro AI Form Analysis")
             
             with st.spinner("Analyzing joint kinematics and tempo..."):
                 try:
@@ -90,7 +146,7 @@ def main():
                     st.stop()
             
             # 3. Fetch Coaching Feedback from OpenRouter
-            with st.spinner("🤖 Gym Bro Coach is reviewing your video..."):
+            with st.spinner("Gym Bro Coach is reviewing your video..."):
                 try:
                     coaching_report = generate_feedback(final_summary, dtw_result, lift_selection)
                 except Exception as e:
@@ -101,7 +157,7 @@ def main():
                 f"""
                 <div class="coach-card">
                     <div class="coach-header">
-                        <div class="coach-avatar">💪</div>
+                        <div class="coach-avatar">AI</div>
                         <div>
                             <div class="coach-title">Gym Bro AI Coach</div>
                             <div class="coach-subtitle">OpenRouter Powered Kinematic Analysis</div>
@@ -113,7 +169,8 @@ def main():
             )
 
             # 5. Display Clean Metrics Grid
-            st.markdown("### 📊 Kinematic & Temporal Metrics")
+            render_html('<div class="section-label">Performance metrics</div>')
+            st.markdown("### Kinematic & Temporal Metrics")
             
             if "error" not in final_summary:
                 metrics_html = '<div class="metrics-grid">'
@@ -122,11 +179,11 @@ def main():
                 if lift_selection == "squat":
                     knee_angle = final_summary.get("deepest_knee_angle", 0.0)
                     torso_lean = final_summary.get("max_torso_lean_at_bottom", 0.0)
-                    depth_ok = final_summary.get("hit_depth", False)
+                    top_reached = final_summary.get("top_reached", False)
                     lean_ok = torso_lean <= 45.0
                     
-                    depth_class = "status-optimal" if depth_ok else "status-deviation"
-                    depth_txt = "Optimal Depth" if depth_ok else "Shallow Depth"
+                    depth_class = "status-optimal" if top_reached else "status-deviation"
+                    depth_txt = "Strong Top Position" if top_reached else "Needs More Pull"
                     
                     lean_class = "status-optimal" if lean_ok else "status-deviation"
                     lean_txt = "Optimal Posture" if lean_ok else "Excessive Lean"
@@ -143,7 +200,7 @@ def main():
                             <span class="metric-status {lean_class}">{lean_txt}</span>
                         </div>
                     """
-                elif lift_selection == "bench":
+                elif lift_selection == "pullup":
                     elbow_angle = final_summary.get("min_elbow_angle", 0.0)
                     depth_ok = final_summary.get("hit_depth", False)
                     
@@ -152,7 +209,7 @@ def main():
                     
                     metrics_html += f"""
                         <div class="metric-item">
-                            <div class="metric-label">Min Elbow Flexion</div>
+                            <div class="metric-label">Top Elbow Flexion</div>
                             <div class="metric-value">{elbow_angle:.1f}°</div>
                             <span class="metric-status {depth_class}">{depth_txt}</span>
                         </div>
@@ -221,14 +278,14 @@ def main():
                 
                 # Inform about speed warnings if any
                 if "error" not in dtw_result and dtw_result.get("speed_warning"):
-                    st.warning(f"⚠️ **Tempo Warning:** {dtw_result['speed_warning']}")
+                    st.warning(f"Tempo Warning: {dtw_result['speed_warning']}")
             
             else:
                 st.warning("Could not extract summary stats for this lift.")
 
             # Raw Data and Downloads Section
             st.markdown("---")
-            with st.expander("📂 View Raw Kinematic Landmark Datasets"):
+            with st.expander("View Raw Kinematic Landmark Datasets"):
                 preview = pd.read_csv(result.raw_csv).head()
                 st.dataframe(preview)
 

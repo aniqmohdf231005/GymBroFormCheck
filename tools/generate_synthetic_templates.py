@@ -1,5 +1,5 @@
 """
-Generates synthetic "ideal form" reference templates for squat, deadlift, and bench.
+Generates synthetic "ideal form" reference templates for squat, deadlift, and pull-up.
 These are based on known biomechanics and serve as placeholders until real reference
 videos are processed via tools/make_reference.py.
 
@@ -36,10 +36,10 @@ def deadlift_reference(frames=80):
     return _smooth(sequence)
 
 
-def bench_reference(frames=70):
-    # elbow_flexion: arms extended (170°) → bar at chest (90°) → press up (170°)
+def pullup_reference(frames=75):
+    # elbow_flexion: hanging arms extended (170 deg) -> top position (70 deg) -> controlled lower (170 deg)
     t = np.linspace(0, np.pi, frames)
-    sequence = 170 - 80 * np.sin(t)
+    sequence = 170 - 100 * np.sin(t)
     return _smooth(sequence)
 
 
@@ -49,7 +49,7 @@ def main():
     lifts = {
         "squat": squat_reference(),
         "deadlift": deadlift_reference(),
-        "bench": bench_reference(),
+        "pullup": pullup_reference(),
     }
 
     for lift_type, sequence in lifts.items():

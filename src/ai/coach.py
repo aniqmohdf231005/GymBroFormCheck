@@ -72,12 +72,13 @@ def _local_coaching_fallback(metrics: dict, dtw_result: dict, lift_type: str) ->
             f"Your chest was at an angle of {lean_val:.1f} degrees, and your tempo was classified as {tempo_label.lower()}. "
             f"Focus on keeping your chest high during the descent and drive up explosively."
         )
-    elif lift_type == "bench":
+    elif lift_type == "pullup":
         elbow_angle = metrics.get("min_elbow_angle", 0)
+        torso_lean = metrics.get("torso_lean_at_top", 0)
         return (
-            f"On the bench press, your minimum elbow flexion reached {elbow_angle:.1f} degrees. "
-            f"With a {tempo_label.lower()}, you did an excellent job controlling the bar's path. "
-            f"Keep maintaining tight shoulder retraction and drive through your legs to stabilize the lift."
+            f"On the pull-up, your top elbow flexion reached {elbow_angle:.1f} degrees while your torso lean was {torso_lean:.1f} degrees. "
+            f"With a {tempo_label.lower()}, focus on pulling higher and keeping the body quiet through the rep. "
+            f"Drive the elbows down toward your ribs and avoid swinging into the top position."
         )
     else:
         max_hip = metrics.get("max_hip_extension", 0)

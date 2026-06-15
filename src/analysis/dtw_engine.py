@@ -9,7 +9,7 @@ TEMPLATES_DIR = Path(__file__).parent / "templates"
 LIFT_PRIMARY_ANGLE = {
     "squat": "knee_flexion",
     "deadlift": "hip_extension",
-    "bench": "elbow_flexion",
+    "pullup": "elbow_flexion",
 }
 
 
